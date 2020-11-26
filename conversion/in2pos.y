@@ -1,9 +1,14 @@
 %{
 #include <stdio.h>
-#include <math.h>
+#include <cstdlib>
+#include <string.h>
 
 int yyerror (char const *s);
 extern int yylex (void);
+
+char* pos;
+int top=0;
+
 %}
 
 %token ID
@@ -19,17 +24,17 @@ extern int yylex (void);
 
 %%
 
-input:  /* empty */ | line
+input:  /* empty */ | input line
 ;
-line:   '\n' | exp '\n' { printf("\n"); return 0;} | error '\n' {yyerrok; }
+line:   '\n' | exp '\n' { printf("Postfix: %s\nInfix: ", pos); top=0; pos=(char*)malloc(200);} | error '\n' {yyerrok; }
 ;
-exp:    ID                      {printf("%s ", $1);}
-        | exp '+' exp           {printf("+ ");}
-        | exp '-' exp           {printf("- ");}
-        | exp '*' exp           {printf("* ");}
-        | exp '/' exp           {printf("/ ");}
-        | '-' exp %prec UMINUS  {printf("- ");}
-        | exp '^' exp           {printf("^ ");}
+exp:    ID                      {pos[top++]=$1[0];}
+        | exp '+' exp           {pos[top++]='+';}
+        | exp '-' exp           {pos[top++]='-';}
+        | exp '*' exp           {pos[top++]='*';}
+        | exp '/' exp           {pos[top++]='/';}
+        | '-' exp %prec UMINUS  {pos[top++]='-';}
+        | exp '^' exp           {pos[top++]='^';}
         | '(' exp ')'           {}
 ;
 
@@ -40,6 +45,8 @@ int yyerror(char const* s) {
     return 0;
 }
 
-int main() { 
+int main() {
+    pos=(char*)malloc(200);
+    printf("Infix: ");
     yyparse();
 }
