@@ -1,8 +1,6 @@
 %{
 #include <stdio.h>
 #include "simple_calc.tab.h"    /* bridge file b/w bison and flex */
-char ch;
-float temp;
 %}
 
 digit   [0-9]
