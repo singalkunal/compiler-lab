@@ -4,5 +4,5 @@ in2pos: in2pos.l in2pos.y
 	g++ lex.yy.c in2pos.tab.c -o in2pos
 
 clean: 
-	@rm -rf *.c *.h .*
+	@rm -rf *.c *.h
 	@find . -type f -executable -delete
