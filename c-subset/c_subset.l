@@ -4,11 +4,10 @@
 %option noyywrap
 
 space   [ \t]+
-alpha   [a-zA-Z]
 digit   [0-9]
 integer {digit}+
-realval {integer}"."{integer}
-id      {alpha}+
+realval {integer}\.{integer}
+id      [a-zA-Z][a-zA-Z]*
 
 
 %%
@@ -26,8 +25,8 @@ id      {alpha}+
 "default"       {return DEF;}
 "if"            {printf("return %s\n", yytext);return IF;}
 "else"          {return ELSE;}
-{integer}       {yylval.str=yytext; return INUM;}
-{realval}       {yylval.str=yytext; return FNUM;}
+{integer}       {yylval.ival=atoi(yytext); return INUM;}
+{realval}       {yylval.fval=atof(yytext); return FNUM;}
 {id}            {yylval.str=yytext; return ID;}
 "<="            {return LE;}
 ">="            {return GE;}

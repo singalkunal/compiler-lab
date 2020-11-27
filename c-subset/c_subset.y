@@ -9,6 +9,7 @@ extern int yylex (void);
 extern int yyparse();
 extern FILE* yyin;
 extern char* yytext;
+extern int yylineno;
 
 FILE* out;
 vector<int> labels;
@@ -40,7 +41,9 @@ void endelse();
 %left '+' '-' 
 %left '*' '/'
 
-%type <str> exp ID INUM FNUM
+%type <str> exp ID
+%type <ival> INUM
+%type <fval> FNUM
 
 %union{
     int ival;
@@ -140,7 +143,7 @@ void gencode() {
 }
 
 int yyerror(char const* s) {
-    printf("%s\n", s);
+    printf("Syntax Error on #line:%d: %s %s\n", yylineno, s, yytext);
     return 0;
 }
 
