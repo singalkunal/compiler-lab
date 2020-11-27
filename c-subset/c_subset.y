@@ -23,10 +23,16 @@ void gencode();
 void labelif();
 void labelelse();
 void endelse();
+void setType();
+void declare();
+void isdeclared();
+void whileinit();
+void labelwhile();
+void endwhile();
 %}
 
 %token INT FLOAT VOID
-%token WHILE
+%token WHILE PREPROC
 %token IF ELSE SWITCH CASE BREAK DEF
 %token INUM FNUM ID
 %right ASGN 
@@ -61,6 +67,10 @@ STMTS:  | STMT STMTS
 ;
 
 STMT:       STMT_IF
+            | STMT_DECLARE
+            | STMT_WHILE
+            | exp ';'
+            | ';'
 ;
 
 exp:    exp '+'     { pushme(); }   exp     { gencode(); }
@@ -81,16 +91,26 @@ exp:    exp '+'     { pushme(); }   exp     { gencode(); }
         | exp LOR   { pushme(); }   exp     { gencode(); }
         | exp ASGN  { pushme(); }   exp     { gencode(); }
         | '('exp')' {           }
+        | ID        { isdeclared(); pushme(); } 
         | INUM      { pushme(); }
         | FNUM      { pushme(); } 
-        | ID        { pushme(); } 
 ;
 
 STMT_IF:    IF '(' exp ')' { labelif(); } STMT_LIST STMT_ELSE
 ;
+
 STMT_ELSE:  ELSE { labelelse(); } STMT_LIST { endelse(); }
 ;
 
+STMT_WHILE:     { whileinit(); } WHILE '(' exp ')' { labelwhile(); } STMT_LIST { endwhile(); }
+;
+
+
+STMT_DECLARE:   TYPE { setType(); } ID { declare(); } IDS
+;
+
+IDS:    ';' | ',' ID { declare(); } IDS
+;
 
 TYPE:   INT | FLOAT | VOID
 ;
@@ -100,6 +120,7 @@ TYPE:   INT | FLOAT | VOID
 
 int lnum=0, top=0;
 char st[100][20];
+char type[10];
 
 void pushme() {
     strcpy(st[++top], yytext);
@@ -122,6 +143,29 @@ void labelelse() {
 void endelse() {
     fprintf(out, "$L%d\n", labels.back());
     labels.pop_back();
+    top--;
+}
+
+void whileinit() {
+    ++lnum;
+    fprintf(out, "$L%d:\n", lnum);
+    labels.push_back(lnum);
+}
+
+void labelwhile() { labelif(); }
+
+void endwhile() {
+    int end=labels.back();  
+    labels.pop_back();
+    int start=labels.back(); 
+    labels.pop_back();
+    fprintf(out, "goto $L%d\n", start);
+    fprintf(out, "$L%d: \n", end);
+    top--;
+}
+
+void setType() {
+    strcpy(type, yytext);
 }
 
 void gencode() {
@@ -142,6 +186,24 @@ void gencode() {
     strcpy(st[top], word);
 }
 
+void declare() {
+    if(symtable.find(yytext) == -1) {
+        symtable.push2table(yytext, type);
+        fprintf(out, "declare %s %s\n", type, yytext);
+    }
+    else {
+        yyerror("Redefinition of ");
+        exit(0);
+    }
+}
+
+void isdeclared() {
+    if(symtable.find(yytext) == -1) {
+        yyerror("Not defined in this scope: ");
+        exit(0);
+    }
+}
+
 int yyerror(char const* s) {
     printf("Syntax Error on #line:%d: %s %s\n", yylineno, s, yytext);
     return 0;
@@ -155,8 +217,9 @@ int main() {
     scanf("%s", input);
 
     yyin = fopen(input, "r");*/
-    out=fopen("output.txt", "w");
 
+    out=fopen("output.txt", "w");
+    fprintf(out, "*******Intermediate 3AC*******\n");
     if(!yyparse())
         printf("<<< Parsed Successfully >>>\n");
     else printf("!! Parsing Failed !!\n");

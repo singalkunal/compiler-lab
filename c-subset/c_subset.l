@@ -7,10 +7,9 @@ space   [ \t]+
 digit   [0-9]
 integer {digit}+
 realval {integer}\.{integer}
-id      [a-zA-Z][a-zA-Z]*
-
-
+id      [a-zA-Z][a-zA-Z0-9_]* 
 %%
+
 {space}         {}
 "\n"            { yylineno += 1; }
 "&&"            {return LAND;}
@@ -23,8 +22,9 @@ id      [a-zA-Z][a-zA-Z]*
 "case"          {return CASE;}
 "break"         {return BREAK;}
 "default"       {return DEF;}
-"if"            {printf("return %s\n", yytext);return IF;}
+"if"            {return IF;}
 "else"          {return ELSE;}
+"while"         {return WHILE; }
 {integer}       {yylval.ival=atoi(yytext); return INUM;}
 {realval}       {yylval.fval=atof(yytext); return FNUM;}
 {id}            {yylval.str=yytext; return ID;}
@@ -38,7 +38,7 @@ id      [a-zA-Z][a-zA-Z]*
 "&"             {return BAND;}
 "|"             {return BOR;}
 "^"             {return BXOR;}
-.               {printf("return %c\n", yytext[0]); return yytext[0];}
+.               {return yytext[0];}
 \/\/.*          {}
 \/\*[.\n]+\*\/  {}
 
