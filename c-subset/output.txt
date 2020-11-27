@@ -1,0 +1,25 @@
+*******Intermediate 3AC*******
+t1 = 2 + 1
+t2 = t1 == 3
+ifFalse t2 then goto $L1
+declare int a
+declare int c
+a = 3
+c = 1
+$L2:
+t3 = a <= 3
+ifFalse t3 then goto $L3
+t4 = a + c
+a = t4
+goto $L2
+$L3: 
+else goto $L4
+$L1
+t5 = 9 - 8
+t6 = t5 < 10
+ifFalse t6 then goto $L5
+declare float f
+else goto $L6
+$L5
+$L6
+$L4
